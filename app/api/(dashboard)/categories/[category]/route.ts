@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import connect from "@/lib/db";
 import User from "@/lib/models/users";
 import { Types } from "mongoose";

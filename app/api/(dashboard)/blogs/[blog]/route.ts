@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import connect from "@/lib/db";
 import User from "@/lib/models/users";
 import { Types } from "mongoose";
 import { NextResponse } from "next/server";
 import Category from "@/lib/models/category";
 import Blog from "@/lib/models/blog";
-import exp from "constants";
 
 export const GET = async (req: Request, context: { params: any }) => {
   const blogId = context.params.blog;
