@@ -4,12 +4,19 @@ import { Types } from "mongoose";
 import { NextResponse } from "next/server";
 import Category from "@/lib/models/category";
 import Blog from "@/lib/models/blog";
+import { title } from "process";
 
 export const GET = async (req: Request) => {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
     const categoryId = searchParams.get("categoryId");
+    const searchKeywords = searchParams.get("keywords") as string;
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const sortingOrder = searchParams.get("sort") as string;
+    const page: any = parseInt(searchParams.get("page") || "1");
+    const limit: any = parseInt(searchParams.get("limit") || "10");
 
     if (!userId || !Types.ObjectId.isValid(userId)) {
       return new NextResponse(
@@ -53,9 +60,40 @@ export const GET = async (req: Request) => {
       category: new Types.ObjectId(categoryId),
     };
 
-    //TODO
+    if (searchKeywords) {
+      filter.$or = [
+        {
+          title: { $regex: searchKeywords, $options: "i" },
+        },
+        {
+          description: { $regex: searchKeywords, $options: "i" },
+        },
+      ];
+    }
 
-    const blogs = await Blog.find(filter);
+    if (startDate && endDate) {
+      filter.createdAt = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    } else if (startDate) {
+      filter.createdAt = {
+        $gte: new Date(startDate),
+      };
+    } else if (endDate) {
+      filter.createdAt = {
+        $lte: new Date(endDate),
+      };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const blogs = await Blog.find(filter)
+      .sort({
+        createdAt: sortingOrder === "asc" ? 1 : -1,
+      })
+      .skip(skip)
+      .limit(limit);
 
     return new NextResponse(JSON.stringify({ blogs }), { status: 200 });
   } catch (error: any) {
